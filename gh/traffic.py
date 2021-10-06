@@ -57,8 +57,6 @@ def main():
     with open(args.repos, 'r') as f:
         repos = f.readlines()
 
-    print(dir)
-
     try:
         out = json.load(open(os.path.join(dir, 'traffic.json'), 'r'))
     except:
