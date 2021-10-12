@@ -103,7 +103,7 @@ $(document).ready(async () => {
     /** @type {{ repo: string, views: Entry[], clones: Entry[] }[]} */
     const options = [
         {
-            repo: 'all',
+            repo: 'all-repos',
             views: [],
             clones: [],
         },
