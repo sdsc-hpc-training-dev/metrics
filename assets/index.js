@@ -104,10 +104,23 @@ $(document).ready(async () => {
     /** @type {{ repo: string, views: Entry[], clones: Entry[] }[]} */
     const options = [];
 
+    let repos = 0;
+    let total = 0;
+    let uniques = 0;
+
     for (const repo in allTraffic) {
         const { views, clones } = allTraffic[repo];
         options.push({ repo, views: fillZeros(views), clones: fillZeros(clones) });
+        repos++;
+        for (const e of views.concat(clones)) {
+            total += e.count;
+            uniques += e.uniques;
+        }
     }
+
+    $('#all').text(
+        `${repos} repositories, ${total} total views, ${uniques} total unique visitors `,
+    );
 
     const charts = [];
     const setIndex = (i = 0) => {
@@ -117,12 +130,22 @@ $(document).ready(async () => {
         const { views, clones } = options[i];
 
         for (const [data, label] of [
-            [views, 'Views'],
-            [clones, 'Clones'],
+            [views, 'Visitors'],
+            [clones, 'Git Clones'],
         ]) {
             const canvas = document.createElement('canvas');
+            const { t, u } = data.reduce(
+                (prev, curr) => {
+                    prev.t += curr.count;
+                    prev.u += curr.uniques;
+                    return prev;
+                },
+                { t: 0, u: 0 },
+            );
             $('#charts').append(
-                $(`<div class="chart"><h3>${label}</h3></div>`).append(canvas),
+                $(`<div class="chart"><h3>${label}</h3></div>`)
+                    .append(canvas)
+                    .append($(`<h5>Total: ${t}, Uniques: ${u}</h5>`)),
             );
             const ctx = canvas.getContext('2d');
             charts.push(new Chart(ctx, makeChart(data)));
