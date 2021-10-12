@@ -61,7 +61,6 @@ $(document).ready(async () => {
                             x: e.timestamp,
                             y: e.uniques,
                         })),
-
                         fill: false,
                         borderColor: '#1f6feb',
                         tension: 0.1,
@@ -115,8 +114,8 @@ $(document).ready(async () => {
     for (const repo in allTraffic) {
         const { views, clones } = allTraffic[repo];
         options.push({ repo, views: fillZeros(views), clones: fillZeros(clones) });
-        allViews.push(...views);
-        allClones.push(...clones);
+        allViews.push(...fillZeros(views));
+        allClones.push(...fillZeros(clones));
     }
 
     /** @param {Entry[]} entries */
@@ -143,8 +142,10 @@ $(document).ready(async () => {
             .sort((a, b) => a.timestamp - b.timestamp);
     };
 
-    options[0].views = fillZeros(combine(allViews));
-    options[0].clones = fillZeros(combine(allClones));
+    options[0].views = combine(allViews);
+    options[0].clones = combine(allClones);
+
+    console.log(options[0]);
 
     const charts = [];
     const setIndex = (i = 0) => {
