@@ -143,8 +143,8 @@ $(document).ready(async () => {
             .sort((a, b) => a.timestamp - b.timestamp);
     };
 
-    options[0].views = combine(allViews);
-    options[0].clones = combine(allClones);
+    options[0].views = fillZeros(combine(allViews));
+    options[0].clones = fillZeros(combine(allClones));
 
     const charts = [];
     const setIndex = (i = 0) => {
