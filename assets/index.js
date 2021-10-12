@@ -1,5 +1,5 @@
 $(document).ready(async () => {
-    /** @typedef {{ timestamp: string, count: number, uniques: number }}Entry */
+    /** @typedef {{ timestamp: Date, count: number, uniques: number }}Entry */
     /** @type {Object<string, { views: Entry[], clones: Entry[] }>} */
     const allTraffic = await (await fetch('gh/traffic.json')).json();
     const today = new Date();
@@ -20,19 +20,18 @@ $(document).ready(async () => {
                 if (timestamp === e.timestamp) break;
 
                 out.push({
-                    timestamp,
+                    timestamp: new Date(t),
                     count: 0,
                     uniques: 0,
                 });
             }
+            e.timestamp = new Date(e.timestamp);
             out.push(e);
         }
         while (t < today) {
             t.setDate(t.getDate() + 1);
-            const timestamp = t.toISOString().replace('.000', '');
-
             out.push({
-                timestamp,
+                timestamp: new Date(t),
                 count: 0,
                 uniques: 0,
             });
@@ -49,7 +48,7 @@ $(document).ready(async () => {
                     {
                         label: 'Count',
                         data: entries.map(e => ({
-                            x: new Date(e.timestamp),
+                            x: e.timestamp,
                             y: e.count,
                         })),
                         fill: false,
@@ -59,7 +58,7 @@ $(document).ready(async () => {
                     {
                         label: 'Unique',
                         data: entries.map(e => ({
-                            x: new Date(e.timestamp),
+                            x: e.timestamp,
                             y: e.uniques,
                         })),
 
@@ -102,25 +101,50 @@ $(document).ready(async () => {
     };
 
     /** @type {{ repo: string, views: Entry[], clones: Entry[] }[]} */
-    const options = [];
+    const options = [
+        {
+            repo: 'all',
+            views: [],
+            clones: [],
+        },
+    ];
 
-    let repos = 0;
-    let total = 0;
-    let uniques = 0;
+    const allViews = [];
+    const allClones = [];
 
     for (const repo in allTraffic) {
         const { views, clones } = allTraffic[repo];
         options.push({ repo, views: fillZeros(views), clones: fillZeros(clones) });
-        repos++;
-        for (const e of views.concat(clones)) {
-            total += e.count;
-            uniques += e.uniques;
-        }
+        allViews.push(...views);
+        allClones.push(...clones);
     }
 
-    $('#all').text(
-        `${repos} repositories, ${total} total views, ${uniques} total unique visitors `,
-    );
+    /** @param {Entry[]} entries */
+    const combine = entries => {
+        /** @type {{ [t: number]: { count: number, uniques: number } }} */
+        const map = {};
+        for (const e of entries) {
+            if (map[+e.timestamp]) {
+                map[+e.timestamp].count += e.count;
+                map[+e.timestamp].uniques += e.uniques;
+            } else {
+                map[+e.timestamp] = {
+                    count: e.count,
+                    uniques: e.uniques,
+                };
+            }
+        }
+        return Object.entries(map)
+            .map(([k, v]) => ({
+                timestamp: new Date(parseInt(k)),
+                count: v.count,
+                uniques: v.uniques,
+            }))
+            .sort((a, b) => a.timestamp - b.timestamp);
+    };
+
+    options[0].views = combine(allViews);
+    options[0].clones = combine(allClones);
 
     const charts = [];
     const setIndex = (i = 0) => {
