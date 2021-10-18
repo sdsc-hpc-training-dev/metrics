@@ -3,6 +3,7 @@ $(document).ready(async () => {
     /** @type {Object<string, { views: Entry[], clones: Entry[] }>} */
     const allTraffic = await (await fetch('gh/traffic.json')).json();
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     /** @param {Entry[]} entries */
     const fillZeros = entries => {
@@ -36,6 +37,7 @@ $(document).ready(async () => {
                 uniques: 0,
             });
         }
+        for (const e of out) e.timestamp.setHours(0, 0, 0, 0);
         return out;
     };
 
@@ -80,12 +82,10 @@ $(document).ready(async () => {
                     yAxes: [
                         {
                             ticks: {
-                                min: 0, // it is for ignoring negative step.
+                                min: 0,
                                 beginAtZero: true,
-                                callback: function (value, index, values) {
-                                    if (Math.floor(value) === value) {
-                                        return value;
-                                    }
+                                callback: v => {
+                                    if (Math.floor(v) === v) return v;
                                 },
                             },
                         },
@@ -103,6 +103,11 @@ $(document).ready(async () => {
     const options = [
         {
             repo: 'all-repos',
+            views: [],
+            clones: [],
+        },
+        {
+            repo: 'all-repos-cumulative',
             views: [],
             clones: [],
         },
@@ -142,10 +147,29 @@ $(document).ready(async () => {
             .sort((a, b) => a.timestamp - b.timestamp);
     };
 
+    /** @param {Entry[]} entries */
+    const cumulative = entries => {
+        let count = 0,
+            uniques = 0;
+        /** @type {Entry[]} */
+        const out = [];
+        for (const e of entries) {
+            count += e.count;
+            uniques += e.uniques;
+            out.push({
+                timestamp: e.timestamp,
+                count,
+                uniques,
+            });
+        }
+        return out;
+    };
+
     options[0].views = combine(allViews);
     options[0].clones = combine(allClones);
 
-    console.log(options[0]);
+    options[1].views = cumulative(options[0].views);
+    options[1].clones = cumulative(options[0].clones);
 
     const charts = [];
     const setIndex = (i = 0) => {
