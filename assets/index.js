@@ -113,12 +113,12 @@ $(document).ready(async () => {
     /** @type {{ repo: string, views: Entry[], clones: Entry[] }[]} */
     const options = [
         {
-            repo: 'all-repos',
+            repo: 'all-repos-cumulative',
             views: [],
             clones: [],
         },
         {
-            repo: 'all-repos-cumulative',
+            repo: 'all-repos',
             views: [],
             clones: [],
         },
@@ -176,11 +176,11 @@ $(document).ready(async () => {
         return out;
     };
 
-    options[0].views = combine(allViews);
-    options[0].clones = combine(allClones);
+    options[1].views = combine(allViews);
+    options[1].clones = combine(allClones);
 
-    options[1].views = cumulative(options[0].views);
-    options[1].clones = cumulative(options[0].clones);
+    options[0].views = cumulative(options[1].views);
+    options[0].clones = cumulative(options[1].clones);
 
     const charts = [];
     const setIndex = (i = 0) => {
