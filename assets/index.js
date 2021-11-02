@@ -38,6 +38,7 @@ $(document).ready(async () => {
             });
         }
         for (const e of out) e.timestamp.setHours(0, 0, 0, 0);
+        out.sort((a, b) => a.timestamp - b.timestamp);
         return out;
     };
 
@@ -202,11 +203,11 @@ $(document).ready(async () => {
                 },
                 { t: 0, u: 0 },
             );
-            $('#charts').append(
-                $(`<div class="chart"><h3>${label}</h3></div>`)
-                    .append(canvas)
-                    .append($(`<h5>Total: ${t}, Uniques: ${u}</h5>`)),
+            const $chartElem = $(`<div class="chart"><h3>${label}</h3></div>`).append(
+                canvas,
             );
+            if (i) $chartElem.append($(`<h5>Total: ${t}, Uniques: ${u}</h5>`));
+            $('#charts').append($chartElem);
             const ctx = canvas.getContext('2d');
             charts.push(new Chart(ctx, makeChart(data)));
         }
